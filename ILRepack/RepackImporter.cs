@@ -768,11 +768,11 @@ namespace ILRepacking
         {
             CustomAttribute newCa = new CustomAttribute(Import(ca.Constructor));
             foreach (var arg in ca.ConstructorArguments)
-                newCa.ConstructorArguments.Add(Copy(arg, context));
+                newCa.ConstructorArguments.Add(Copy(arg, context, ca));
             foreach (var arg in ca.Fields)
-                newCa.Fields.Add(Copy(arg, context));
+                newCa.Fields.Add(Copy(arg, context, ca));
             foreach (var arg in ca.Properties)
-                newCa.Properties.Add(Copy(arg, context));
+                newCa.Properties.Add(Copy(arg, context, ca));
             return newCa;
         }
 
@@ -832,17 +832,17 @@ namespace ILRepacking
             }
         }
 
-        public CustomAttributeArgument Copy(CustomAttributeArgument arg, IGenericParameterProvider context)
+        public CustomAttributeArgument Copy(CustomAttributeArgument arg, IGenericParameterProvider context, CustomAttribute ca = null, CustomAttributeNamedArgument namedArg = default(CustomAttributeNamedArgument))
         {
-            return new CustomAttributeArgument(Import(arg.Type, context), ImportCustomAttributeValue(arg.Value, context));
+            return new CustomAttributeArgument(Import(arg.Type, context), ImportCustomAttributeValue(arg.Value, context, ca, namedArg));
         }
 
-        public CustomAttributeNamedArgument Copy(CustomAttributeNamedArgument namedArg, IGenericParameterProvider context)
+        public CustomAttributeNamedArgument Copy(CustomAttributeNamedArgument namedArg, IGenericParameterProvider context, CustomAttribute ca = null)
         {
-            return new CustomAttributeNamedArgument(namedArg.Name, Copy(namedArg.Argument, context));
+            return new CustomAttributeNamedArgument(namedArg.Name, Copy(namedArg.Argument, context, ca, namedArg));
         }
 
-        private object ImportCustomAttributeValue(object obj, IGenericParameterProvider context)
+        private object ImportCustomAttributeValue(object obj, IGenericParameterProvider context, CustomAttribute ca = null, CustomAttributeNamedArgument namedArg = default(CustomAttributeNamedArgument))
         {
             if (obj is TypeReference)
                 return Import((TypeReference)obj, context);
@@ -850,6 +850,16 @@ namespace ILRepacking
                 return Copy((CustomAttributeArgument)obj, context);
             if (obj is CustomAttributeArgument[])
                 return Array.ConvertAll((CustomAttributeArgument[])obj, a => Copy(a, context));
+
+            if (ca?.AttributeType.FullName == "System.Diagnostics.Tracing.EventSourceAttribute" && namedArg.Name == "Name")
+            {
+                var s = obj as string;
+                if (s != null)
+                {
+                    obj = "Redfield-" + s;
+                }
+            }
+
             return obj;
         }
     }

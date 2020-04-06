@@ -23,9 +23,9 @@ namespace ILRepacking
     {
         CustomAttribute Copy(CustomAttribute ca, IGenericParameterProvider context);
 
-        CustomAttributeArgument Copy(CustomAttributeArgument arg, IGenericParameterProvider context);
+        CustomAttributeNamedArgument Copy(CustomAttributeNamedArgument namedArg, IGenericParameterProvider context, CustomAttribute ca = null);
 
-        CustomAttributeNamedArgument Copy(CustomAttributeNamedArgument namedArg, IGenericParameterProvider context);
+        CustomAttributeArgument Copy(CustomAttributeArgument arg, IGenericParameterProvider context, CustomAttribute ca, CustomAttributeNamedArgument namedArg);
 
         void CopySecurityDeclarations(Collection<SecurityDeclaration> input, Collection<SecurityDeclaration> output, IGenericParameterProvider context);
 
