@@ -178,7 +178,14 @@ namespace ILRepacking
             }
             foreach (FieldDefinition field in type.Fields)
             {
-                if (ShouldDrop(field) == false)
+                if (String.Equals(type.Namespace, "Microsoft.ApplicationInsights.Extensibility.Implementation", StringComparison.OrdinalIgnoreCase) && String.Equals(type.Name, "RichPayloadEventSource", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (String.Equals(field.Name, "EventProviderName", StringComparison.OrdinalIgnoreCase))
+                    {
+                        field.Constant = "Redfield-Microsoft-ApplicationInsights-Data";
+                    }
+                }
+                    if (ShouldDrop(field) == false)
                 {
                     CloneTo(field, nt);
                 }
@@ -186,11 +193,25 @@ namespace ILRepacking
             // methods before fields / events
             foreach (MethodDefinition meth in type.Methods)
             {
+                if (String.Equals(type.Namespace, "Microsoft.ApplicationInsights.Extensibility.Implementation", StringComparison.OrdinalIgnoreCase) && String.Equals(type.Name, "RichPayloadEventSource", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (String.Equals(meth.Name, ".ctor", StringComparison.OrdinalIgnoreCase))
+                    {
+                        foreach (var instruction in meth.Body.Instructions)
+                        {
+                            if (instruction != null && instruction.Operand != null && String.Equals(instruction.Operand.ToString(), "Microsoft-ApplicationInsights-Data", StringComparison.OrdinalIgnoreCase))
+                            {
+                                instruction.Operand = "Redfield-Microsoft-ApplicationInsights-Data";
+                            }
+                        }
+                    }
+                }
                 if (ShouldDrop(meth) == false)
                 {
                     CloneTo(meth, nt, justCreatedType);
                 }
             }
+
             foreach (EventDefinition evt in type.Events)
             {
                 if (ShouldDrop(evt) == false)
